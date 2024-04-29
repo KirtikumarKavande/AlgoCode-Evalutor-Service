@@ -1,21 +1,27 @@
 import { Job } from "bullmq";
+
 import { IJob } from "../types/bullMqJobDefination";
 
-class SampleJob implements IJob {
-  name: string;
-  payload?: Record<string, unknown> | undefined;
-  constructor(payload: Record<string, unknown>) {
-    this.payload = payload;
-    this.name = this.constructor.name;
-  }
-  handle = () => {
-    console.log("job handler called");
-  };
-  failed = (job?: Job) => {
-    if (job) {
-      console.log("job failed", job);
+export default class SampleJob implements IJob {
+    name: string;
+    payload: Record<string, unknown>;
+    constructor(payload: Record<string, unknown>) {
+        this.payload = payload;
+        this.name = this.constructor.name;
     }
-  };
-}
 
-export default SampleJob;
+    handle = (job?: Job) => {
+        console.log("Handler of the job called");
+        console.log(this.payload);
+        if(job) {
+            console.log(job.name, job.id, job.data);
+        }
+    };
+
+    failed = (job?: Job) : void => {
+        console.log("Job failed");
+        if(job) {
+            console.log(job.id);
+        }
+    };
+}
