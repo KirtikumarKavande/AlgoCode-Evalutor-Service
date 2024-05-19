@@ -1,5 +1,4 @@
 import { Router } from "express";
-import submissionRoutes from "./v1/submission.routes";
 import v1Routes from "./v1";
 
 const apiRoutes = Router();

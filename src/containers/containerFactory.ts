@@ -3,7 +3,7 @@ let Docker = require("dockerode");
 async function createContainer(imageName: string, cmdExecutable: string[]) {
   const docker = new Docker();
 
- const container = await docker.createContainer({
+  const container = await docker.createContainer({
     Image: imageName,
     Cmd: cmdExecutable,
 
@@ -13,10 +13,9 @@ async function createContainer(imageName: string, cmdExecutable: string[]) {
 
     Tty: false,
     OpenStdin: true,
-  
   });
 
-  return container
+  return container;
 }
 
-export default createContainer
+export default createContainer;
