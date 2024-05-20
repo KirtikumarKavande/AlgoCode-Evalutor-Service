@@ -13,6 +13,6 @@ app.use("/api", apiRoutes);
 
 app.listen(serverConfig.PORT, () => {
   console.log("server running on PORT", serverConfig.PORT);
-  const code = `print("Hello")`;
+  const code = `pr("Hello")`;
   runPython(code);
 });
