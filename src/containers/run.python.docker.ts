@@ -2,14 +2,16 @@ import { PYTHON_IMAGE } from "../utilities/constants";
 import createContainer from "./containerFactory";
 import decodeDockerStreamOutput from "./dockerHelper";
 
-async function runPython(code: string) {
+async function runPython(code: string,inputTestCase: string) {
   const rawLogBuffer:Buffer[]=[]
-  const pythonDockerContainer = await createContainer(PYTHON_IMAGE, [
-    "python3",
-    "-c",
-    code,
-    "stty -echo",
-  ]);
+  const runCommand = `echo '${code.replace(/'/g, `'\\"`)}' > test.py && echo '${inputTestCase.replace(/'/g, `'\\"`)}' | python3 test.py`;
+    console.log(runCommand);
+    // const pythonDockerContainer = await createContainer(PYTHON_IMAGE, ['python3', '-c', code, 'stty -echo']); 
+    const pythonDockerContainer = await createContainer(PYTHON_IMAGE, [
+        '/bin/sh', 
+        '-c',
+        runCommand
+    ]); 
   await pythonDockerContainer.start();
   const loggerStream = await pythonDockerContainer.logs({
     stdout: true,

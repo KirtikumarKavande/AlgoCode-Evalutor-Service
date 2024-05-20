@@ -13,6 +13,14 @@ app.use("/api", apiRoutes);
 
 app.listen(serverConfig.PORT, () => {
   console.log("server running on PORT", serverConfig.PORT);
-  const code = `pr("Hello")`;
-  runPython(code);
+  const code = `x = input()
+y = input()
+print("value of x is", x)
+print("value of y is", y)
+`;
+
+const inputCase = `100
+200
+`;
+  runPython(code,inputCase);
 });
