@@ -2,7 +2,7 @@ import express from "express";
 import serverConfig from "./config/server.config";
 import bodyParser from "body-parser";
 import apiRoutes from "./routes";
-import runJava from "./containers/run.java.docker";
+import runCpp from "./containers/run.cpp.docker";
 
 const app = express();
 app.use(bodyParser.json());
@@ -13,23 +13,40 @@ app.use("/api", apiRoutes);
 
 app.listen(serverConfig.PORT, () => {
   console.log("server running on PORT", serverConfig.PORT);
-  const code = `
-  import java.util.*;
-
-  public class Main {
-      public static void main(String[] args) {
-          Scanner scn = new Scanner(System.in);
-          int input = scn.nextInt();
-          System.out.println("input value given by user:" + input);
-          for (int i = 0; i < input; i++) {
-              System.out.println(i);
-          }
-      }
-  }
+  const userCode = `
   
+  class Solution {
+    public:
+    vector<int> permute() {
+        vector<int> v;
+        v.push_back(10);
+        return v;
+    }
+  };
 `;
 
-  const inputCase = `100
+const code = `
+#include<iostream>
+#include<vector>
+#include<stdio.h>
+using namespace std;
+
+${userCode}
+
+int main() {
+
+  Solution s;
+  vector<int> result = s.permute();
+  for(int x : result) {
+    cout<<x<<" ";
+  }
+  cout<<endl;
+  return 0;
+}
 `;
-  runJava(code, inputCase);
+
+const inputCase = `10
+`;
+
+runCpp(code, inputCase);
 });
