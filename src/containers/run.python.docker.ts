@@ -1,6 +1,7 @@
 import { PYTHON_IMAGE } from "../utilities/constants";
 import createContainer from "./containerFactory";
 import decodeDockerStreamOutput from "./dockerHelper";
+import pullDockerImage from "./pullDockerImage";
 
 async function runPython(code: string, inputTestCase: string) {
   const rawLogBuffer: Buffer[] = [];
@@ -13,6 +14,10 @@ async function runPython(code: string, inputTestCase: string) {
   )}' | python3 test.py`;
   console.log(runCommand);
   // const pythonDockerContainer = await createContainer(PYTHON_IMAGE, ['python3', '-c', code, 'stty -echo']);
+
+  await pullDockerImage(PYTHON_IMAGE);
+  
+
   const pythonDockerContainer = await createContainer(PYTHON_IMAGE, [
     "/bin/sh",
     "-c",

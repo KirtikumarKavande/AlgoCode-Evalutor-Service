@@ -1,6 +1,7 @@
 import { JAVA_IMAGE } from "../utilities/constants";
 import createContainer from "./containerFactory";
 import decodeDockerStreamOutput from "./dockerHelper";
+import pullDockerImage from "./pullDockerImage";
 
 async function runJava(code: string, inputTestCase: string) {
   const rawLogBuffer: Buffer[] = [];
@@ -12,6 +13,8 @@ async function runJava(code: string, inputTestCase: string) {
     `'\\"`
   )}' | java Main`;
   console.log(runCommand);
+  await pullDockerImage(JAVA_IMAGE);
+
   // const javaDockerContainer = await createContainer(PYTHON_IMAGE, ['python3', '-c', code, 'stty -echo']);
   const javaDockerContainer = await createContainer(JAVA_IMAGE, [
     "/bin/sh",
