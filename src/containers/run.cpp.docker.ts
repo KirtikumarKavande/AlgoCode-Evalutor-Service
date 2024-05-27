@@ -31,18 +31,20 @@ async function runCpp(code: string, inputTestCase: string) {
   loggerStream.on("data", (chunk: Buffer) => {
     rawLogBuffer.push(chunk);
   });
-  await new Promise((res) => {
+  const response = await new Promise((res) => {
     loggerStream.on("end", () => {
       const completeBuffer = Buffer.concat(rawLogBuffer);
       const decodedStream = decodeDockerStreamOutput(completeBuffer);
       console.log(rawLogBuffer);
 
-      console.log(decodedStream);
-      res(decodedStream);
+      // console.log(decodedStream);
+      res(decodedStream); 
+      
     });
   });
 
   await CppDockerContainer.remove();
+  return response;
 }
 
 export default runCpp;
