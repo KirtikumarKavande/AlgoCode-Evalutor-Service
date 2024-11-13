@@ -35,9 +35,9 @@ async function runCpp(code: string, inputTestCase: string) {
     loggerStream.on("end", () => {
       const completeBuffer = Buffer.concat(rawLogBuffer);
       const decodedStream = decodeDockerStreamOutput(completeBuffer);
-      console.log(rawLogBuffer);
+      // console.log(rawLogBuffer);
 
-      // console.log(decodedStream);
+      console.log(decodedStream);
       res(decodedStream); 
       
     });
