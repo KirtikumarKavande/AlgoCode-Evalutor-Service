@@ -8,7 +8,7 @@ import pullDockerImage from "./pullDockerImage";
 
 async function runJavaScript(code: string, inputTestCase: string) {
   const rawLogBuffer: Buffer[] = [];
-  console.log("Initialising a new Node.js docker container");
+  console.log("Initialising a new Node.js docker container",inputTestCase);
   
   await pullDockerImage(NODE_IMAGE);
 

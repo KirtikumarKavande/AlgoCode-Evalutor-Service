@@ -6,25 +6,25 @@ import runJavaScript from "../containers/run.javascript.docker";
 
 export default class SubmissionJob implements IJob {
   name: string;
-  payload?: Record<string, string> ;
-  // payload: Record<string, SubmissionPayload>;
-  // constructor(payload: Record<string, SubmissionPayload>) {
-  constructor(payload: SubmissionPayload) {
-    this.payload = payload;
-    this.name = this.constructor.name;
+  payload: Record<string, SubmissionPayload>;
+  constructor(payload: Record<string, SubmissionPayload>) {
+      this.payload = payload;
+      this.name = this.constructor.name;
   }
-
   handle = async (job?: Job) => {
     // console.log(this.payload);
     if (job) {
-      // const keys = Object.keys(this.payload);
+      const key = Object.keys(this.payload)[0];
     console.log("Handler of the job called", this.payload);
-
-      if (job && this?.payload?.language === "javascript") {
+    const codeLanguage = this.payload[key].language;
+    const code = this.payload[key].code;
+    const inputTestCase = this.payload[key].inputCase;
+    const outputTestCase = this.payload[key].outputCase;
+      if (job && codeLanguage === "javascript") {
         // console.log(this.payload)
         const response = await runJavaScript(
-          this?.payload?.code,
-         "10 20"
+          code,
+          inputTestCase
         );
         console.log("output", response);
       }
