@@ -13,6 +13,10 @@ async function createContainer(imageName: string, cmdExecutable: string[]) {
 
     Tty: false,
     OpenStdin: true,
+    HostConfig:{
+      Memory:1024*1024*512 //512MB   
+    }
+
   });
 
   return container;

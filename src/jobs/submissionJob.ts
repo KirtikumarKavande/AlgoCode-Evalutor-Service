@@ -24,7 +24,9 @@ export default class SubmissionJob implements IJob {
         // console.log(this.payload)
         const response = await runJavaScript(
           code,
-          inputTestCase
+          inputTestCase,
+          outputTestCase
+
         );
         console.log("output", response);
       }
