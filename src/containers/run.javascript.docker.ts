@@ -72,7 +72,15 @@ async function runJavaScript(
     });
 
     const response: any = await new Promise((resolve, reject) => {
+      // this timelimit should configurable by problem setter because each lang require different time to execute
+
+      let timerId = setTimeout(() => {
+        console.log("timer finished")
+        reject({stderr:"Time Limit Exceeded"});
+      }, 5000);
+
       loggerStream.on("end", () => {
+        clearTimeout(timerId);
         const completeBuffer = Buffer.concat(rawLogBuffer);
         const decodedStream = decodeDockerStream(completeBuffer);
 
@@ -95,7 +103,10 @@ async function runJavaScript(
 
     return result;
   } catch (error: any) {
-    return { status: "failed", result: error.stderr };
+        if(error.stderr==="Time Limit Exceeded"){
+          await nodeDockerContainer.kill();
+        }
+        return { status: "failed", result: error.stderr };
   } finally {
     // Ensure container cleanup happens whether there was an error or not
     if (nodeDockerContainer) {
