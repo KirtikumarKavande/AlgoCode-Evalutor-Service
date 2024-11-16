@@ -11,9 +11,9 @@ export default function SubmissionWorker(queueName: string) {
       // console.log("job name", job.name);
       // console.log("Sample job worker kicking", job.data);
       if (job.name === "submission") {
-        const sampleJobInstance = new SubmissionJob(job.data);
+        const submissionJobInstance = new SubmissionJob(job.data);
 
-        sampleJobInstance.handle(job);
+        submissionJobInstance.handle(job);
 
         return true;
       }
