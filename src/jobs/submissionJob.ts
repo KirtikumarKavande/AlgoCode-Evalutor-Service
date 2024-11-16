@@ -3,6 +3,7 @@ import { Job } from "bullmq";
 import { IJob } from "../types/bullMqJobDefination";
 import { SubmissionPayload } from "../types/submissionPayload";
 import runJavaScript from "../containers/run.javascript.docker";
+import evaluatorQueue from "../producers/evalutorQueue.producer";
 
 export default class SubmissionJob implements IJob {
   name: string;
@@ -32,6 +33,7 @@ export default class SubmissionJob implements IJob {
           testCases
         );
         console.log("output", response);
+        evaluatorQueue(response)
       }
     }
   };
