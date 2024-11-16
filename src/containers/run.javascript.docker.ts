@@ -5,51 +5,99 @@ import pullDockerImage from "./pullDockerImage";
 
 async function runJavaScript(
   code: string,
-  inputTestCase: string,
-  outputTestCase: string
+  testCases: { input: string; output: string; _id?: string }[]
 ) {
+  if (!Array.isArray(testCases)) {
+    console.error("Invalid test cases format:", testCases);
+    return {
+      status: "failed",
+      error: "Invalid test cases format",
+      results: [],
+      totalTestCases: 0,
+      passedTestCases: 0
+    };
+  }
+
   let nodeDockerContainer = null;
   try {
     const rawLogBuffer: Buffer[] = [];
-    console.log("Initialising a new Node.js docker container", inputTestCase);
+    console.log("Initializing a new Node.js docker container");
+    console.log("Test Cases:", testCases);
 
     await pullDockerImage(NODE_IMAGE);
 
+    // Prepare test cases by cleaning input format
+    const cleanTestCases = testCases.map(tc => ({
+      input: tc.input.trim(),
+      output: tc.output.trim()
+    }));
+
     const completeCode = `
-        const userCode = \`${code}\`;  
-        
-        ${code}  
-      
-        const readline = require("readline").createInterface({
-            input: process.stdin
-        });
-      
-        const testCases = [];
-      
-        readline.on("line", (line) => {
-            const inputs = line.split(" ").map(Number);
-            testCases.push(inputs);
-        });
-      
-        readline.on("close", () => {
-            testCases.forEach(inputs => {
-                try {
-                    const functionMatch = /function\\s+([a-zA-Z_$][0-9a-zA-Z_$]*)\\s*\\(/.exec(userCode);
-                    const functionName = functionMatch ? functionMatch[1] : null;
-                    if (functionName) {
-                        const result = eval(functionName + "(...inputs)");
-                        console.log(result);
-                    }
-                } catch (err) {
-                    console.error(\`Error running test case \${inputs}: \${err.message}\`);
+    // Inject user-provided code
+    ${code}
+
+    // Test cases data
+    const testCases = ${JSON.stringify(cleanTestCases)};
+
+    function runTests() {
+        const results = [];
+        testCases.forEach((testCase, index) => {
+            try {
+                // Extract function name from the code
+                const functionMatch = /function\\s+([a-zA-Z_$][0-9a-zA-Z_$]*)\\s*\\(/.exec(\`${code}\`);
+                const functionName = functionMatch ? functionMatch[1] : null;
+
+                if (!functionName) {
+                    throw new Error("No valid function found in code");
                 }
-            });
-        });`;
+
+                // Parse input - handle both space and comma separated values
+                const inputs = testCase.input
+                    .split(/[\\s,]+/)
+                    .filter(Boolean)
+                    .map(Number);
+
+                if (inputs.some(isNaN)) {
+                    throw new Error("Invalid input format");
+                }
+
+                const startTime = process.hrtime();
+                const result = eval(functionName + "(" + inputs.join(",") + ")");
+                const endTime = process.hrtime(startTime);
+                const executionTime = (endTime[0] * 1000 + endTime[1] / 1000000).toFixed(2);
+
+                results.push({
+                    testCase: index + 1,
+                    input: testCase.input,
+                    expectedOutput: testCase.output,
+                    actualOutput: result,
+                    executionTime: parseFloat(executionTime),
+                    passed: result.toString() === testCase.output.toString(),
+                });
+            } catch (err) {
+                results.push({
+                    testCase: index + 1,
+                    input: testCase.input,
+                    expectedOutput: testCase.output,
+                    error: err.message,
+                    executionTime: 0,
+                    passed: false,
+                });
+            }
+        });
+
+        return results;
+    }
+
+    const results = runTests();
+    console.log(JSON.stringify(results));
+`;
+
 
     const runCommand = `echo '${completeCode.replace(
       /'/g,
       `'\\"`
-    )}' > main.js && echo '${inputTestCase}' | node main.js`;
+    )}' > main.js && node main.js`;
 
     nodeDockerContainer = await createContainer(NODE_IMAGE, [
       "/bin/sh",
@@ -72,11 +120,8 @@ async function runJavaScript(
     });
 
     const response: any = await new Promise((resolve, reject) => {
-      // this timelimit should configurable by problem setter because each lang require different time to execute
-
       let timerId = setTimeout(() => {
-        console.log("timer finished")
-        reject({stderr:"Time Limit Exceeded"});
+        reject({ stderr: "Time Limit Exceeded" });
       }, 5000);
 
       loggerStream.on("end", () => {
@@ -89,26 +134,45 @@ async function runJavaScript(
         } else {
           reject(decodedStream);
         }
-        console.log("decoded stream", decodedStream);
       });
     });
 
-    const result = {
-      status:
-        outputTestCase.trim().toString() === response.stdout.trim().toString()
-          ? "success"
-          : "failed",
-      result: response.stdout,
+    // Parse results
+    let executionResults;
+    try {
+      executionResults = JSON.parse(response.stdout);
+      console.log("Execution results:", executionResults); // Debug log
+    } catch (err) {
+      console.error("Error parsing execution results:", err, "Raw stdout:", response.stdout);
+      throw new Error("Failed to parse execution results");
+    }
+
+    const totalExecutionTime = executionResults.reduce(
+      (sum: number, r: any) => sum + (r.executionTime || 0), 
+      0
+    );
+
+    return {
+      status: executionResults.every((r: any) => r.passed) ? "success" : "failed",
+      results: executionResults,
+      totalExecutionTime,
+      totalTestCases: testCases.length,
+      passedTestCases: executionResults.filter((r: any) => r.passed).length
     };
 
-    return result;
   } catch (error: any) {
-        if(error.stderr==="Time Limit Exceeded"){
-          await nodeDockerContainer.kill();
-        }
-        return { status: "failed", result: error.stderr };
+    console.error("Error in runJavaScript:", error);
+    if (error.stderr === "Time Limit Exceeded") {
+      await nodeDockerContainer?.kill();
+    }
+    return {
+      status: "failed",
+      error: error.stderr || error.message || "Execution failed",
+      results: [],
+      totalTestCases: testCases.length,
+      passedTestCases: 0
+    };
   } finally {
-    // Ensure container cleanup happens whether there was an error or not
     if (nodeDockerContainer) {
       try {
         await nodeDockerContainer.remove();
