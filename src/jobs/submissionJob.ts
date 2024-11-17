@@ -21,6 +21,8 @@ export default class SubmissionJob implements IJob {
       
       const codeLanguage = this.payload[key].language;
       const code = this.payload[key].code;
+      const userId = this.payload[key].userId;
+      const submissionId = this.payload[key].submissionId;
       const testCases = this.payload[key].testCases;
 
       console.log("Code to execute:", code);
@@ -33,7 +35,7 @@ export default class SubmissionJob implements IJob {
           testCases
         );
         console.log("output", response);
-        evaluatorQueue(response)
+        evaluatorQueue({userId,submissionId,testCaseResult:response})
       }
     }
   };
