@@ -41,6 +41,6 @@ export default class SubmissionJob implements IJob {
   };
 
   failed = (job?: Job): void => {
-    console.log("Job failed");
+    console.log("Job failed",job);
   };
 }

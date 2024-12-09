@@ -38,7 +38,6 @@ async function runJavaScript(
 
     // Test cases data
     const testCases = ${JSON.stringify(cleanTestCases)};
-
     function runTests() {
         const results = [];
         testCases.forEach((testCase, index) => {
@@ -46,33 +45,23 @@ async function runJavaScript(
                 // Extract function name from the code
                 const functionMatch = /function\\s+([a-zA-Z_$][0-9a-zA-Z_$]*)\\s*\\(/.exec(\`${code}\`);
                 const functionName = functionMatch ? functionMatch[1] : null;
-
                 if (!functionName) {
                     throw new Error("No valid function found in code");
                 }
-
                 // Parse input - handle both space and comma separated values
-                const inputs = testCase.input
-                    .split(/[\\s,]+/)
-                    .filter(Boolean)
-                    .map(Number);
-
-                if (inputs.some(isNaN)) {
-                    throw new Error("Invalid input format");
-                }
-
+                let inputs = testCase.input
+                let parsedInput=JSON.parse(inputs)                      
                 const startTime = process.hrtime();
-                const result = eval(functionName + "(" + inputs.join(",") + ")");
+                const result = eval(functionName + "(" +JSON.stringify(parsedInput)+ ")");
                 const endTime = process.hrtime(startTime);
                 const executionTime = (endTime[0] * 1000 + endTime[1] / 1000000).toFixed(2);
-
                 results.push({
                     testCase: index + 1,
                     input: testCase.input,
                     expectedOutput: testCase.output,
                     actualOutput: result,
                     executionTime: parseFloat(executionTime),
-                    passed: result.toString() === testCase.output.toString(),
+                    passed: result.toString() === JSON.parse(testCase.output).toString(),
                 });
             } catch (err) {
                 results.push({
@@ -85,10 +74,8 @@ async function runJavaScript(
                 });
             }
         });
-
         return results;
     }
-
     const results = runTests();
     console.log(JSON.stringify(results));
 `;
