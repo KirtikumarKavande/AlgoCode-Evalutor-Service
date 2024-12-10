@@ -15,7 +15,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/dockerode": "^3.3.29",
+    "@types/dockerode": "^3.3.32",
     "bullmq": "^5.7.6",
     "concurrently": "^8.2.2",
     "dockerode": "^4.0.2",

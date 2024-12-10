@@ -50,9 +50,14 @@ async function runJavaScript(
                 }
                 // Parse input - handle both space and comma separated values
                 let inputs = testCase.input
-                let parsedInput=JSON.parse(inputs)                      
+                if (testCase.input.includes(",")) {
+                    inputs = "[" + testCase.input + "]"
+                }
+                let parsedInput=JSON.parse(inputs)
+                const argsString = parsedInput.map(arg => JSON.stringify(arg)).join(", ");
                 const startTime = process.hrtime();
-                const result = eval(functionName + "(" +JSON.stringify(parsedInput)+ ")");
+                const result = eval(functionName + "(" +argsString + ")");
+                
                 const endTime = process.hrtime(startTime);
                 const executionTime = (endTime[0] * 1000 + endTime[1] / 1000000).toFixed(2);
                 results.push({
